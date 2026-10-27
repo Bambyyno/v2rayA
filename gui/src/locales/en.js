@@ -759,6 +759,8 @@ export default {
     SUBSCRIPTION_EMPTY: "The subscription contains no servers.",
     SUBSCRIPTION_PLACEHOLDER:
       "The provider returned placeholder nodes at 0.0.0.0 telling the client to use HAPP or INCY, and no usable servers.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "The provider refused the subscription because the device limit is reached. No servers were added.",
     SUBSCRIPTION_NOT_FOUND:
       "Subscription #{id} does not exist. Reload the page.",
     SERVER_NOT_FOUND:

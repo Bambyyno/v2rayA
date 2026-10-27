@@ -171,6 +171,24 @@ brew services start v2raya        # 当前用户：系统代理
 
 [v2raya-openwrt](https://github.com/v2rayA/v2raya-openwrt) 软件源与官方 packages 源目前打包的是 2.2.7.x，搭配独立的 `xray-core`，不是本文描述的版本。在它们更新之前，按下一节的方式手动安装 `mips32`、`mips32le`、`arm64` 或 `x64` 的发布二进制文件，并自行编写 init 脚本。
 
+本仓库不生成 apk。手工复制的程序不会出现在「软件包」里。从软件源安装的 OpenWrt 包名是 `v2raya`，卸载时保留两个配置文件：
+
+```sh
+apk del v2raya
+```
+
+`/etc/v2raya/`（账户、订阅、设置）和 `/etc/config/v2raya` 会留下。只有不再需要这些配置时才删除它们。
+
+不是用 apk 装上的副本，要删程序文件，而不是在「软件包」里找：
+
+```sh
+/etc/init.d/v2raya stop
+/etc/init.d/v2raya disable
+rm -f /etc/init.d/v2raya /usr/bin/v2raya
+```
+
+`/usr/bin/v2ray` 和 `/usr/bin/xray` 如果来自各自的软件包，不要删。上面的命令也不会删除 `/etc/v2raya/`。
+
 </details>
 
 <details>

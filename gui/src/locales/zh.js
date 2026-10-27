@@ -736,6 +736,8 @@ export default {
     SUBSCRIPTION_EMPTY: "订阅中没有节点。",
     SUBSCRIPTION_PLACEHOLDER:
       "订阅服务返回了地址为 0.0.0.0 的占位节点，并要求使用 HAPP 或 INCY。其中没有可用服务器。",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "订阅服务因设备数量已达上限而拒绝了该订阅。没有添加服务器。",
     SUBSCRIPTION_NOT_FOUND: "订阅 #{id} 不存在，请刷新页面。",
     SERVER_NOT_FOUND: "节点 #{id} 不存在（共有 {count} 个节点），请刷新页面。",
     SUBSCRIPTION_SERVER_NOT_FOUND:

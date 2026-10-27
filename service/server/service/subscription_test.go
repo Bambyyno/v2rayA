@@ -111,6 +111,30 @@ func TestSubscriptionPlaceholderIsNotImported(t *testing.T) {
 	}
 }
 
+func TestSubscriptionDeviceLimitIsNotImported(t *testing.T) {
+	raw := "vless://b831381d-6324-4d53-ad4f-8cda48b30811@0.0.0.0:1?type=tcp#" + url.PathEscape("Вы достигли лимита устройств") + "\n"
+	body := base64.StdEncoding.EncodeToString([]byte(raw))
+	header := make(http.Header)
+	header.Set("X-Hwid-Active", "true")
+	header.Set("X-Hwid-Max-Devices-Reached", "true")
+	header.Set("X-Hwid-Limit", "true")
+	client := &http.Client{Transport: updateTransport(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Header:     header,
+		}, nil
+	})}
+	infos, _, err := ResolveSubscriptionWithClient("https://sub.example/S", client)
+	if err == nil || len(infos) != 0 || !strings.Contains(err.Error(), "device limit") {
+		t.Fatalf("infos=%v err=%v", infos, err)
+	}
+	if strings.Contains(err.Error(), "HAPP") {
+		t.Fatalf("device limit was reported as a HAPP placeholder: %v", err)
+	}
+}
+
 func TestSubscriptionDropsPlaceholderBesideRealServer(t *testing.T) {
 	raw := "vless://b831381d-6324-4d53-ad4f-8cda48b30811@0.0.0.0:1?type=tcp#App%20not%20supported\n" +
 		"vless://b831381d-6324-4d53-ad4f-8cda48b30811@1.2.3.4:443?type=tcp#real\n"

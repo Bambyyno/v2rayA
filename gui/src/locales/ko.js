@@ -749,6 +749,8 @@ export default {
     SUBSCRIPTION_EMPTY: "구독에 서버 없음.",
     SUBSCRIPTION_PLACEHOLDER:
       "구독 서버가 주소 0.0.0.0인 자리표시 노드를 돌려주고 HAPP 또는 INCY를 쓰라고 했습니다. 쓸 수 있는 서버가 없습니다.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "구독 서버가 기기 수 한도에 도달했다며 구독을 거절했습니다. 서버는 추가되지 않았습니다.",
     SUBSCRIPTION_NOT_FOUND: "구독 #{id} 없음. 페이지를 새로 고치세요.",
     SERVER_NOT_FOUND:
       "서버 #{id} 없음 (서버 {count}개). 페이지를 새로 고치세요.",

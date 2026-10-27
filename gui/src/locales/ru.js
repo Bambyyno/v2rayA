@@ -765,6 +765,8 @@ export default {
     SUBSCRIPTION_EMPTY: "Подписка не содержит серверов.",
     SUBSCRIPTION_PLACEHOLDER:
       "Провайдер вернул заглушки с адресом 0.0.0.0 и просьбой использовать HAPP или INCY. Рабочих серверов в ответе нет.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "Провайдер отклонил подписку: достигнут лимит устройств. Серверы не добавлены.",
     SUBSCRIPTION_NOT_FOUND:
       "Подписка №{id} не существует. Перезагрузите страницу.",
     SERVER_NOT_FOUND:

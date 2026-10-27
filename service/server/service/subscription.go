@@ -220,6 +220,21 @@ func subscriptionIsPlaceholder(raw string) bool {
 	return placeholderText(raw)
 }
 
+func headerIsTrue(h http.Header, key string) bool {
+	return strings.EqualFold(strings.TrimSpace(h.Get(key)), "true")
+}
+
+// subscriptionDeviceLimit is the Remnawave answer when x-hwid was accepted
+// and the account has no free device slot. The body is still 0.0.0.0 nodes,
+// with different remarks from the "use HAPP" placeholder.
+func subscriptionDeviceLimit(h http.Header, raw string) bool {
+	if headerIsTrue(h, "X-Hwid-Max-Devices-Reached") || headerIsTrue(h, "X-Hwid-Limit") {
+		return true
+	}
+	low := strings.ToLower(raw)
+	return strings.Contains(low, "лимит устройств") || strings.Contains(low, "device limit")
+}
+
 func placeholderText(s string) bool {
 	s = strings.ToLower(s)
 	for _, phrase := range []string{
@@ -333,7 +348,10 @@ func ResolveSubscriptionWithClient(source string, client *http.Client) (infos []
 	}
 	usable := importableServers(infos)
 	if len(usable) == 0 {
-		if len(infos) > 0 || subscriptionIsPlaceholder(raw) {
+		if subscriptionDeviceLimit(res.Header, raw) {
+			return nil, "", common.Coded("SUBSCRIPTION_DEVICE_LIMIT", fmt.Errorf("the provider refused the subscription because the device limit is reached; no servers were added"), nil)
+		}
+		if len(infos) > 0 || subscriptionIsPlaceholder(raw) || headerIsTrue(res.Header, "X-Hwid-Not-Supported") {
 			return nil, "", common.Coded("SUBSCRIPTION_PLACEHOLDER", fmt.Errorf("the provider returned placeholder nodes at 0.0.0.0 telling the client to use HAPP or INCY, and no usable servers"), nil)
 		}
 		// an update that replaced the list with nothing would drop every

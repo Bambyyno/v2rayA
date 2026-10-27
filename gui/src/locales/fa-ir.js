@@ -754,6 +754,8 @@ export default {
     SUBSCRIPTION_EMPTY: "اشتراک شامل هیچ سروری نیست.",
     SUBSCRIPTION_PLACEHOLDER:
       "ارائه‌دهنده گره‌های ساختگی با نشانی 0.0.0.0 برگرداند و خواست از HAPP یا INCY استفاده شود. سرور قابل استفاده‌ای در پاسخ نیست.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "ارائه‌دهنده اشتراک را رد کرد چون سقف دستگاه‌ها پر شده است. سروری اضافه نشد.",
     SUBSCRIPTION_NOT_FOUND:
       "اشتراک #{id} وجود ندارد. صفحه را دوباره بارگیری کنید.",
     SERVER_NOT_FOUND:

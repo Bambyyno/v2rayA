@@ -76,6 +76,13 @@ beforeEach(() => {
 });
 
 describe("the backend address follows the page", () => {
+  test("starting the core posts to this page when no address is saved", async () => {
+    localStorage.removeItem("backendAddress");
+    await call({ url: "v2ray", method: "post" });
+    expect(sent[0].url).toBe(`${location.origin}/api/v2ray`);
+    expect(sent[0].method).toBe("post");
+  });
+
   test("an empty address is this page, not localhost", () => {
     localStorage.removeItem("backendAddress");
     expect(apiRoot()).toBe(`${location.origin}/api`);

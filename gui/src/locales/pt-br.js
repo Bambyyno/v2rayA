@@ -769,6 +769,8 @@ export default {
     SUBSCRIPTION_EMPTY: "A assinatura não contém servidores.",
     SUBSCRIPTION_PLACEHOLDER:
       "O provedor devolveu nós de exemplo no endereço 0.0.0.0 pedindo para usar HAPP ou INCY. Não há servidores utilizáveis.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "O provedor recusou a assinatura porque o limite de dispositivos foi atingido. Nenhum servidor foi adicionado.",
     SUBSCRIPTION_NOT_FOUND:
       "A assinatura #{id} não existe. Recarregue a página.",
     SERVER_NOT_FOUND:
