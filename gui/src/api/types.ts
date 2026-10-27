@@ -69,6 +69,10 @@ export interface VersionResponse {
   variant: string;
   /** the core binary's version; empty when it could not be asked */
   coreVersion?: string;
+  /** true when no v2ray, xray or v2raya_core binary was found */
+  coreNotFound?: boolean;
+  /** where the service looked for the core, when coreNotFound is set */
+  coreLookedIn?: string;
   os: string;
   isRoot: boolean;
   tunSupported: boolean;

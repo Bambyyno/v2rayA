@@ -432,6 +432,8 @@ export default {
   version: {
     v2rayInvalid:
       "geosite.dat, geoip.dat ou o v2raya_core podem não estar instalados corretamente",
+    coreNotFound:
+      "O núcleo não foi encontrado. Procurei v2ray, xray e v2raya_core em {paths}.",
     coreVersionMismatch:
       "Incompatibilidade de versão do núcleo: a versão do v2raya_core deve corresponder exatamente à versão do v2rayA. {err}",
   },
@@ -749,7 +751,8 @@ export default {
     NO_SERVER_SELECTED:
       "Nenhum servidor selecionado. Conecte um servidor primeiro.",
     CORE_START_FAILED: "Falha ao iniciar o v2raya_core: {detail}",
-    CORE_NOT_FOUND: "v2raya_core não encontrado.",
+    CORE_NOT_FOUND:
+      "v2ray, xray ou v2raya_core não encontrado. Procurado em {paths}.",
     CORE_VERSION_MISMATCH:
       "A versão {core} do v2raya_core não corresponde à versão {app} do v2rayA.",
     PORT_OCCUPIED: "A porta {port} já está em uso.",
@@ -764,6 +767,8 @@ export default {
     SUBSCRIPTION_FETCH_FAILED:
       "Não foi possível obter a assinatura de {host}: {detail}",
     SUBSCRIPTION_EMPTY: "A assinatura não contém servidores.",
+    SUBSCRIPTION_PLACEHOLDER:
+      "O provedor devolveu nós de exemplo no endereço 0.0.0.0 pedindo para usar HAPP ou INCY. Não há servidores utilizáveis.",
     SUBSCRIPTION_NOT_FOUND:
       "A assinatura #{id} não existe. Recarregue a página.",
     SERVER_NOT_FOUND:

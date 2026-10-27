@@ -423,6 +423,8 @@ export default {
   version: {
     v2rayInvalid:
       "ممکن است geosite.dat، geoip.dat یا v2raya_core به‌درستی نصب نشده باشد",
+    coreNotFound:
+      "هسته پیدا نشد. v2ray، xray و v2raya_core در این مسیرها جستجو شد: {paths}.",
     coreVersionMismatch:
       "ناسازگاری نسخه هسته: نسخه v2raya_core باید دقیقاً با نسخه v2rayA یکسان باشد. {err}",
   },
@@ -735,7 +737,8 @@ export default {
     NO_SERVER_SELECTED:
       "هیچ سروری انتخاب نشده است. ابتدا یک سرور را متصل کنید.",
     CORE_START_FAILED: "شروع v2raya_core ناموفق بود: {detail}",
-    CORE_NOT_FOUND: "v2raya_core پیدا نشد.",
+    CORE_NOT_FOUND:
+      "v2ray، xray یا v2raya_core پیدا نشد. مسیرهای جستجو: {paths}.",
     CORE_VERSION_MISMATCH:
       "نسخه v2raya_core یعنی {core} با نسخه v2rayA یعنی {app} مطابقت ندارد.",
     PORT_OCCUPIED: "پورت {port} از قبل در حال استفاده است.",
@@ -749,6 +752,8 @@ export default {
     LINK_MALFORMED: "پیوند {protocol} ساختار نادرستی دارد: {detail}",
     SUBSCRIPTION_FETCH_FAILED: "دریافت اشتراک از {host} ناموفق بود: {detail}",
     SUBSCRIPTION_EMPTY: "اشتراک شامل هیچ سروری نیست.",
+    SUBSCRIPTION_PLACEHOLDER:
+      "ارائه‌دهنده گره‌های ساختگی با نشانی 0.0.0.0 برگرداند و خواست از HAPP یا INCY استفاده شود. سرور قابل استفاده‌ای در پاسخ نیست.",
     SUBSCRIPTION_NOT_FOUND:
       "اشتراک #{id} وجود ندارد. صفحه را دوباره بارگیری کنید.",
     SERVER_NOT_FOUND:

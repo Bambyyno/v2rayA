@@ -42,16 +42,26 @@ func CheckAndProbeTProxy() (err error) {
 	return
 }
 
-// CheckCoreVersionMatch checks whether the v2raya_core binary version matches
-// the v2rayA service version. Development builds ("debug", "unstable") skip
-// strict matching. In release builds, the two binaries are built from the same
-// source tree with the same version string, so they must match exactly.
+// CheckCoreVersionMatch checks whether a v2raya_core binary's version matches
+// the v2rayA service version. A v2ray or xray binary is accepted on its own
+// version: those are not built from this tree. Development builds ("debug",
+// "unstable") skip strict matching. In release builds, v2raya_core and the
+// service are built from the same source tree with the same version string.
 func CheckCoreVersionMatch() error {
-	_, coreVer, err := where.GetV2rayServiceVersion()
+	variant, coreVer, err := where.GetV2rayServiceVersion()
 	if err != nil {
-		return fmt.Errorf("failed to get v2raya_core version: %v", err)
+		return err
 	}
-	serviceVer := conf.Version
+	return acceptCoreVersion(variant, coreVer, conf.Version)
+}
+
+func acceptCoreVersion(variant where.Variant, coreVer, serviceVer string) error {
+	if variant == where.Xray || variant == where.V2ray {
+		return nil
+	}
+	if coreVer == "" {
+		return fmt.Errorf("the core did not report a version")
+	}
 
 	// Development builds: skip strict matching
 	var DevVersions = []string{"debug", "unstable"}
@@ -65,7 +75,7 @@ func CheckCoreVersionMatch() error {
 		// almost always means an xray-core or v2ray-core binary is installed
 		// where v2raya_core belongs. Say that instead of two bare numbers.
 		return common.Coded("CORE_VERSION_MISMATCH", fmt.Errorf(
-			"%w: the core reports version %q but v2rayA is %q; v2rayA needs the v2raya_core binary of the same version, not xray-core or v2ray-core",
+			"%w: v2raya_core reports version %q but v2rayA is %q; the two must be the same version",
 			CoreVersionMismatchError, coreVer, serviceVer,
 		), map[string]interface{}{
 			"core": coreVer,

@@ -49,8 +49,47 @@ export function backendAddress(): string {
   return localStorage.getItem("backendAddress") ?? "";
 }
 
+function loopbackHost(host: string): boolean {
+  const name = host.replace(/^\[|\]$/g, "").toLowerCase();
+  return (
+    name === "localhost" ||
+    name === "local" ||
+    name === "127.0.0.1" ||
+    name === "::1"
+  );
+}
+
+/** forgetLoopbackBackend drops a stored loopback address when the page was opened on another host. */
+export function forgetLoopbackBackend(pageHref: string): void {
+  const stored = localStorage.getItem("backendAddress");
+  if (!stored || (stored.startsWith("/") && !stored.startsWith("//"))) return;
+  let pageHost = "";
+  let storedHost = "";
+  try {
+    pageHost = new URL(pageHref).hostname;
+    storedHost = new URL(stored).hostname;
+  } catch {
+    return;
+  }
+  if (!loopbackHost(pageHost) && loopbackHost(storedHost)) {
+    localStorage.removeItem("backendAddress");
+  }
+}
+
+/** visibleBackendAddress is the address shown when the backend cannot be reached. */
+export function visibleBackendAddress(): string {
+  const address = backendAddress();
+  if (!address) return location.origin;
+  if (address.startsWith("/") && !address.startsWith("//")) {
+    return location.origin + address.replace(/\/$/, "");
+  }
+  return address;
+}
+
 export function apiRoot(): string {
-  return `${backendAddress()}/api`;
+  const address = backendAddress();
+  if (!address) return `${location.origin}/api`;
+  return `${address}/api`;
 }
 
 // Per-operation timeouts the old components set on their calls; the

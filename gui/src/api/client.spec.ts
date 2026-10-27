@@ -7,7 +7,9 @@ import {
   apiRoot,
   call,
   client,
+  forgetLoopbackBackend,
   setClientHooks,
+  visibleBackendAddress,
 } from "./client";
 
 // A fake transport: records what the client sends and answers what the
@@ -70,6 +72,26 @@ beforeEach(() => {
   reply = async () => ({
     status: 200,
     data: { code: "SUCCESS", data: { ok: 1 } },
+  });
+});
+
+describe("the backend address follows the page", () => {
+  test("an empty address is this page, not localhost", () => {
+    localStorage.removeItem("backendAddress");
+    expect(apiRoot()).toBe(`${location.origin}/api`);
+    expect(visibleBackendAddress()).toBe(location.origin);
+    expect(visibleBackendAddress()).not.toContain("localhost:2017");
+  });
+
+  test("a saved localhost address is dropped when the page is on another host", () => {
+    localStorage.setItem("backendAddress", "http://localhost:2017");
+    forgetLoopbackBackend("http://192.168.2.1:2017/");
+    expect(localStorage.getItem("backendAddress")).toBeNull();
+    localStorage.setItem("backendAddress", "http://127.0.0.1:2017");
+    forgetLoopbackBackend("http://localhost:2017/");
+    expect(localStorage.getItem("backendAddress")).toBe(
+      "http://127.0.0.1:2017",
+    );
   });
 });
 

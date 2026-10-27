@@ -1,9 +1,12 @@
 package service
 
 import (
+	"encoding/base64"
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -51,6 +54,78 @@ func TestSubscriptionUserInfoString(t *testing.T) {
 		if c.sui.Known() != (c.want != "") {
 			t.Errorf("%s: Known() disagrees with the rendered text", c.name)
 		}
+	}
+}
+
+func TestSubscriptionSendsStableDeviceID(t *testing.T) {
+	var got http.Header
+	body := base64.StdEncoding.EncodeToString([]byte("vless://b831381d-6324-4d53-ad4f-8cda48b30811@1.2.3.4:443?type=tcp#real\n"))
+	client := &http.Client{Transport: updateTransport(func(r *http.Request) (*http.Response, error) {
+		got = r.Header.Clone()
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Header:     make(http.Header),
+			Request:    r,
+		}, nil
+	})}
+	infos, _, err := ResolveSubscriptionWithClient("https://example.test/sub", client)
+	if err != nil || len(infos) != 1 || infos[0].GetHostname() != "1.2.3.4" {
+		t.Fatalf("infos=%v err=%v", infos, err)
+	}
+	id := got.Get("x-hwid")
+	if id == "" || id != got.Get("X-Device-Id") {
+		t.Fatalf("device headers: %v", got)
+	}
+	if !regexp.MustCompile(`^[a-zA-Z0-9=-]{10,64}$`).MatchString(id) {
+		t.Fatalf("device id %q", id)
+	}
+	if id != subscriptionDeviceID() {
+		t.Fatal("device id changed between calls")
+	}
+	ua := got.Get("User-Agent")
+	if !strings.Contains(ua, "v2rayA/") || strings.Contains(strings.ToLower(ua), "happ") || strings.Contains(ua, "INCY") {
+		t.Fatalf("user agent %q", ua)
+	}
+}
+
+func TestSubscriptionPlaceholderIsNotImported(t *testing.T) {
+	raw := "vless://b831381d-6324-4d53-ad4f-8cda48b30811@0.0.0.0:1?type=tcp#" + url.PathEscape("Приложение не поддерживается") +
+		"\nvless://b831381d-6324-4d53-ad4f-8cda48b30811@0.0.0.0:1?type=tcp#" + url.PathEscape("Используйте HAPP или INCY") + "\n"
+	body := base64.StdEncoding.EncodeToString([]byte(raw))
+	client := &http.Client{Transport: updateTransport(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Header:     make(http.Header),
+		}, nil
+	})}
+	infos, _, err := ResolveSubscriptionWithClient("https://sub.example/S", client)
+	if err == nil || len(infos) != 0 || !strings.Contains(err.Error(), "0.0.0.0") {
+		t.Fatalf("infos=%v err=%v", infos, err)
+	}
+	if !strings.Contains(err.Error(), "HAPP") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestSubscriptionDropsPlaceholderBesideRealServer(t *testing.T) {
+	raw := "vless://b831381d-6324-4d53-ad4f-8cda48b30811@0.0.0.0:1?type=tcp#App%20not%20supported\n" +
+		"vless://b831381d-6324-4d53-ad4f-8cda48b30811@1.2.3.4:443?type=tcp#real\n"
+	body := base64.StdEncoding.EncodeToString([]byte(raw))
+	client := &http.Client{Transport: updateTransport(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(body)),
+			Header:     make(http.Header),
+		}, nil
+	})}
+	infos, _, err := ResolveSubscriptionWithClient("https://sub.example/S", client)
+	if err != nil || len(infos) != 1 || infos[0].GetHostname() != "1.2.3.4" {
+		t.Fatalf("infos=%v err=%v", infos, err)
 	}
 }
 

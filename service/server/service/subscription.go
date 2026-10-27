@@ -2,14 +2,19 @@ package service
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -185,6 +190,108 @@ func trapBOM(fileBytes []byte) []byte {
 	trimmedBytes := bytes.Trim(fileBytes, "\xef\xbb\xbf")
 	return trimmedBytes
 }
+
+// Providers that limit devices (Remnawave HWID) answer a client with no
+// device id with vless nodes at 0.0.0.0 whose names tell the user to open
+// HAPP or INCY. Those are not servers.
+func importableServers(infos []serverObj.ServerObj) []serverObj.ServerObj {
+	if len(infos) == 0 {
+		return infos
+	}
+	usable := infos[:0]
+	for _, info := range infos {
+		if placeholderServer(info) {
+			continue
+		}
+		usable = append(usable, info)
+	}
+	return usable
+}
+
+func placeholderServer(info serverObj.ServerObj) bool {
+	host := strings.Trim(info.GetHostname(), "[]")
+	if ip := net.ParseIP(host); ip != nil && ip.IsUnspecified() {
+		return true
+	}
+	return placeholderText(info.GetName())
+}
+
+func subscriptionIsPlaceholder(raw string) bool {
+	return placeholderText(raw)
+}
+
+func placeholderText(s string) bool {
+	s = strings.ToLower(s)
+	for _, phrase := range []string{
+		"приложение не поддерживается",
+		"используйте happ",
+		"используйте incy",
+		"app not supported",
+		"use happ",
+		"use incy",
+	} {
+		if strings.Contains(s, phrase) {
+			return true
+		}
+	}
+	return false
+}
+
+// subscriptionHeaders identifies this v2rayA install to a subscription that
+// requires a device id. The user agent stays v2rayA's; x-hwid is the id
+// Remnawave documents, and X-Device-ID is the alias some panels read instead.
+func subscriptionHeaders() http.Header {
+	id := subscriptionDeviceID()
+	h := make(http.Header)
+	h.Set("x-hwid", id)
+	h.Set("X-Device-ID", id)
+	return h
+}
+
+var subscriptionDeviceID = sync.OnceValue(func() string {
+	sum := sha256.Sum256([]byte("v2raya-subscription:" + machineIdentity()))
+	return hex.EncodeToString(sum[:16])
+})
+
+func machineIdentity() string {
+	for _, path := range []string{"/etc/machine-id", "/var/lib/dbus/machine-id"} {
+		if id := readTrimmed(path); id != "" {
+			return id
+		}
+	}
+	if mac := firstHardwareAddr(); mac != "" {
+		return mac
+	}
+	host, _ := os.Hostname()
+	return host
+}
+
+func readTrimmed(path string) string {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(b))
+}
+
+func firstHardwareAddr() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+	var macs []string
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagLoopback != 0 || len(iface.HardwareAddr) == 0 {
+			continue
+		}
+		macs = append(macs, iface.HardwareAddr.String())
+	}
+	sort.Strings(macs)
+	if len(macs) == 0 {
+		return ""
+	}
+	return macs[0]
+}
 func ResolveSubscriptionWithClient(source string, client *http.Client) (infos []serverObj.ServerObj, status string, err error) {
 	defer func() {
 		if err != nil {
@@ -203,7 +310,7 @@ func ResolveSubscriptionWithClient(source string, client *http.Client) (infos []
 		c.Timeout = 30 * time.Second
 	}
 
-	res, err := httpClient.HttpGetUsingSpecificClient(&c, source)
+	res, err := httpClient.HttpGetWithHeaders(&c, source, subscriptionHeaders())
 	if err != nil {
 		return nil, "", err
 	}
@@ -224,11 +331,16 @@ func ResolveSubscriptionWithClient(source string, client *http.Client) (infos []
 	if err != nil {
 		return nil, "", err
 	}
-	if len(infos) == 0 {
+	usable := importableServers(infos)
+	if len(usable) == 0 {
+		if len(infos) > 0 || subscriptionIsPlaceholder(raw) {
+			return nil, "", common.Coded("SUBSCRIPTION_PLACEHOLDER", fmt.Errorf("the provider returned placeholder nodes at 0.0.0.0 telling the client to use HAPP or INCY, and no usable servers"), nil)
+		}
 		// an update that replaced the list with nothing would drop every
 		// node; treat an unparseable or empty body as a failed fetch
 		return nil, "", common.Coded("SUBSCRIPTION_EMPTY", fmt.Errorf("no server found in the subscription response"), nil)
 	}
+	infos = usable
 	// The Subscription-Userinfo header is the standard form of the usage; a
 	// STATUS= line in the body is the provider's own prose for the same
 	// numbers. Showing both printed every figure twice in two formats.

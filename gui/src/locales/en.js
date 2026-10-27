@@ -427,6 +427,8 @@ export default {
   version: {
     v2rayInvalid:
       "geosite.dat, geoip.dat or v2raya_core may not be installed correctly",
+    coreNotFound:
+      "The core was not found. Looked for v2ray, xray and v2raya_core in {paths}.",
     coreVersionMismatch:
       "Core version mismatch: v2raya_core version must exactly match v2rayA version. {err}",
   },
@@ -739,7 +741,8 @@ export default {
   backend: {
     NO_SERVER_SELECTED: "No server is selected. Connect a server first.",
     CORE_START_FAILED: "Failed to start v2raya_core: {detail}",
-    CORE_NOT_FOUND: "v2raya_core was not found.",
+    CORE_NOT_FOUND:
+      "v2ray, xray or v2raya_core was not found. Looked in {paths}.",
     CORE_VERSION_MISMATCH:
       "v2raya_core version {core} does not match v2rayA version {app}.",
     PORT_OCCUPIED: "Port {port} is already in use.",
@@ -754,6 +757,8 @@ export default {
     SUBSCRIPTION_FETCH_FAILED:
       "Could not fetch the subscription from {host}: {detail}",
     SUBSCRIPTION_EMPTY: "The subscription contains no servers.",
+    SUBSCRIPTION_PLACEHOLDER:
+      "The provider returned placeholder nodes at 0.0.0.0 telling the client to use HAPP or INCY, and no usable servers.",
     SUBSCRIPTION_NOT_FOUND:
       "Subscription #{id} does not exist. Reload the page.",
     SERVER_NOT_FOUND:

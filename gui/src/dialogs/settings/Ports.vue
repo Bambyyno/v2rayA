@@ -19,6 +19,7 @@ const store = useAppStore();
 const { open } = useDialog();
 const notify = useNotify();
 const address = ref(store.backendAddress);
+const pageOrigin = window.location.origin;
 const ports = reactive({
   socks5: "20170",
   http: "20171",
@@ -162,7 +163,7 @@ async function save(event: Event) {
         v-model="address"
         name="backendAddress"
         :label="t('customAddressPort.serviceAddress')"
-        placeholder="http://localhost:2017"
+        :placeholder="pageOrigin"
         pattern="(https?://.+|/.+)"
         :disabled="saving"
         dir="ltr"

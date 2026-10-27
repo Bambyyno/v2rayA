@@ -427,6 +427,8 @@ export default {
   version: {
     v2rayInvalid:
       "geosite.dat, geoip.dat или v2raya_core могут быть установлены некорректно",
+    coreNotFound:
+      "Ядро не найдено. Программа искала v2ray, xray и v2raya_core здесь: {paths}.",
     coreVersionMismatch:
       "Несовпадение версий ядра: версия v2raya_core должна в точности совпадать с версией v2rayA. {err}",
   },
@@ -745,7 +747,8 @@ export default {
   backend: {
     NO_SERVER_SELECTED: "Сервер не выбран. Сначала подключитесь к серверу.",
     CORE_START_FAILED: "Не удалось запустить v2raya_core: {detail}",
-    CORE_NOT_FOUND: "v2raya_core не найден.",
+    CORE_NOT_FOUND:
+      "v2ray, xray или v2raya_core не найден. Искал здесь: {paths}.",
     CORE_VERSION_MISMATCH:
       "Версия v2raya_core ({core}) не совпадает с версией v2rayA ({app}).",
     PORT_OCCUPIED: "Порт {port} уже используется.",
@@ -760,6 +763,8 @@ export default {
     SUBSCRIPTION_FETCH_FAILED:
       "Не удалось получить подписку по адресу {host}: {detail}",
     SUBSCRIPTION_EMPTY: "Подписка не содержит серверов.",
+    SUBSCRIPTION_PLACEHOLDER:
+      "Провайдер вернул заглушки с адресом 0.0.0.0 и просьбой использовать HAPP или INCY. Рабочих серверов в ответе нет.",
     SUBSCRIPTION_NOT_FOUND:
       "Подписка №{id} не существует. Перезагрузите страницу.",
     SERVER_NOT_FOUND:

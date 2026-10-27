@@ -10,6 +10,7 @@ import (
 	"github.com/v2rayA/v2rayA/db/configure"
 	"github.com/v2rayA/v2rayA/kernel/ipforward"
 	"github.com/v2rayA/v2rayA/kernel/v2ray"
+	"github.com/v2rayA/v2rayA/kernel/v2ray/where"
 	"github.com/v2rayA/v2rayA/pkg/util/log"
 	"github.com/v2rayA/v2rayA/server/router"
 	"github.com/v2rayA/v2rayA/server/service"
@@ -82,6 +83,16 @@ func run() error {
 	// Repair what a crashed or killed previous run left in the operating
 	// system before anything else, whether or not the core is started.
 	v2ray.CleanupTunResidual()
+
+	if _, err := where.GetV2rayBinPath(); err != nil {
+		log.Warn("%v", err)
+		// A missing binary is not a running service, even if the last
+		// process left the flag set.
+		if shouldStart {
+			_ = configure.SetRunning(false)
+			shouldStart = false
+		}
+	}
 
 	if shouldStart {
 		//configure the ip forward
