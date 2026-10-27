@@ -171,6 +171,24 @@ A service started with `sudo` is stopped with `sudo brew services stop v2raya`, 
 
 The [v2raya-openwrt](https://github.com/v2rayA/v2raya-openwrt) feed and the official packages feed currently package 2.2.7.x with a separate `xray-core`, not the release described here. Until they are updated, install the `mips32`, `mips32le`, `arm64` or `x64` release binaries by hand, as in the next section, with the init script of your choice.
 
+This git tree does not build an apk. A checkout or a hand-copied binary does not appear in Software. The OpenWrt package, when one is installed from a feed, is named `v2raya`. Removing it keeps the two conffiles:
+
+```sh
+apk del v2raya
+```
+
+`/etc/v2raya/` (accounts, subscriptions, settings) and `/etc/config/v2raya` stay. Delete those only when the configuration should go too.
+
+A copy that was not installed with apk is removed by deleting the program, not with Software:
+
+```sh
+/etc/init.d/v2raya stop
+/etc/init.d/v2raya disable
+rm -f /etc/init.d/v2raya /usr/bin/v2raya
+```
+
+Leave `/usr/bin/v2ray` and `/usr/bin/xray` in place when they came from their own packages. `/etc/v2raya/` is kept by the commands above.
+
 </details>
 
 <details>

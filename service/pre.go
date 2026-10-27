@@ -11,8 +11,12 @@ import (
 )
 
 func hello() {
-	v2rayPath, _ := where.GetV2rayBinPath()
-	log.Alert("V2Ray binary is %v", v2rayPath)
+	v2rayPath, err := where.GetV2rayBinPath()
+	if err != nil {
+		log.Alert("%v", err)
+	} else {
+		log.Alert("V2Ray binary is %v", v2rayPath)
+	}
 	log.Alert("V2Ray asset directory is %v", asset.GetV2rayLocationAssetOverride())
 	wd, _ := os.Getwd()
 	log.Alert("v2rayA working directory is %v", wd)

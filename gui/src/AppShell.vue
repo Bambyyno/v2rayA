@@ -30,7 +30,7 @@ import {
   postV2ray,
   getTouch,
 } from "@/api";
-import { ApiError, backendAddress, currentSession } from "@/api/client";
+import { ApiError, currentSession, visibleBackendAddress } from "@/api/client";
 import { watchConnected } from "@/api/connect";
 import { errorText } from "@/api/errors";
 import type {
@@ -166,7 +166,9 @@ async function askForLogin() {
       banner.show({
         key: "login",
         kind: "warning",
-        text: t("axios.messages.noBackendFound", { url: backendAddress() }),
+        text: t("axios.messages.noBackendFound", {
+          url: visibleBackendAddress(),
+        }),
         action: {
           label: t("operations.refresh"),
           onClick: () => {
@@ -210,7 +212,14 @@ async function announceVersion() {
           window.open("https://github.com/v2rayA/v2rayA/releases", "_blank"),
       },
     });
-  if (v.coreVersionValid === false)
+  if (v.coreNotFound)
+    banner.show({
+      key: "coreVersion",
+      kind: "error",
+      text: t("version.coreNotFound", { paths: v.coreLookedIn || "" }),
+      dismissible: false,
+    });
+  else if (v.coreVersionValid === false)
     banner.show({
       key: "coreVersion",
       kind: "error",

@@ -422,6 +422,8 @@ export default {
   version: {
     v2rayInvalid:
       "geosite.dat, geoip.dat 또는 v2raya_core가 올바르게 설치되지 않았을 수 있습니다",
+    coreNotFound:
+      "코어를 찾지 못했습니다. v2ray, xray, v2raya_core를 다음 위치에서 검색했습니다: {paths}.",
     coreVersionMismatch:
       "코어 버전 불일치: v2raya_core 버전은 v2rayA 버전과 정확히 일치해야 합니다. {err}",
   },
@@ -730,7 +732,8 @@ export default {
   backend: {
     NO_SERVER_SELECTED: "선택된 서버 없음. 먼저 서버에 연결하세요.",
     CORE_START_FAILED: "v2raya_core 시작 실패: {detail}",
-    CORE_NOT_FOUND: "v2raya_core를 찾을 수 없음.",
+    CORE_NOT_FOUND:
+      "v2ray, xray 또는 v2raya_core를 찾지 못했습니다. 검색 위치: {paths}.",
     CORE_VERSION_MISMATCH:
       "v2raya_core 버전 {core}와 v2rayA 버전 {app} 불일치.",
     PORT_OCCUPIED: "포트 {port} 사용 중.",
@@ -744,6 +747,10 @@ export default {
     LINK_MALFORMED: "잘못된 {protocol} 링크: {detail}",
     SUBSCRIPTION_FETCH_FAILED: "{host}에서 구독 가져오기 실패: {detail}",
     SUBSCRIPTION_EMPTY: "구독에 서버 없음.",
+    SUBSCRIPTION_PLACEHOLDER:
+      "구독 서버가 주소 0.0.0.0인 자리표시 노드를 돌려주고 HAPP 또는 INCY를 쓰라고 했습니다. 쓸 수 있는 서버가 없습니다.",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "구독 서버가 기기 수 한도에 도달했다며 구독을 거절했습니다. 서버는 추가되지 않았습니다.",
     SUBSCRIPTION_NOT_FOUND: "구독 #{id} 없음. 페이지를 새로 고치세요.",
     SERVER_NOT_FOUND:
       "서버 #{id} 없음 (서버 {count}개). 페이지를 새로 고치세요.",

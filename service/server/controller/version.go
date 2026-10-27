@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"runtime"
@@ -35,8 +36,20 @@ func GetVersion(ctx *gin.Context) {
 	versionErr := service.CheckCoreVersionMatch()
 	// the core's own version, for the dashboard; empty when the binary cannot be asked
 	coreVersion := ""
-	if _, ver, err := where.GetV2rayServiceVersion(); err == nil {
+	variant := where.Variant("")
+	coreNotFound := false
+	coreLookedIn := ""
+	if found, ver, err := where.GetV2rayServiceVersion(); err == nil {
+		variant = found
 		coreVersion = ver
+	} else if errors.Is(err, where.NotFoundErr) {
+		coreNotFound = true
+		var coded *common.CodedError
+		if errors.As(err, &coded) && coded.Params != nil {
+			if paths, ok := coded.Params["paths"].(string); ok {
+				coreLookedIn = paths
+			}
+		}
 	}
 
 	common.ResponseSuccess(ctx, gin.H{
@@ -47,8 +60,10 @@ func GetVersion(ctx *gin.Context) {
 		"v5":               versionErr == nil,
 		"lite":             lite,
 		"loadBalanceValid": true,
-		"variant":          where.V2rayaCore,
+		"variant":          variant,
 		"coreVersion":      coreVersion,
+		"coreNotFound":     coreNotFound,
+		"coreLookedIn":     coreLookedIn,
 		"os":               runtime.GOOS,
 		"isRoot":           isRoot,
 		"tunSupported":     v2ray.TunSupported(),

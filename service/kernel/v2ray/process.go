@@ -240,27 +240,47 @@ func RunWithLog(ctx context.Context, name string, argv []string, dir string, env
 	return cmd.Process, nil
 }
 
+// coreCommandArgs is the argv the core accepts. v2ray 4.x has no run
+// subcommand and takes -config; v2ray 5, xray and v2raya_core take run --config.
+func coreCommandArgs(bin, configPath, confdir string, variant where.Variant, ver string) []string {
+	if variant == where.V2ray && majorVersion(ver) < 5 {
+		return []string{bin, "-config=" + configPath}
+	}
+	args := []string{bin, "run", "--config=" + configPath}
+	if confdir != "" {
+		args = append(args, "--confdir="+confdir)
+	}
+	return args
+}
+
+func majorVersion(ver string) int {
+	n, _, _ := strings.Cut(ver, ".")
+	i, _ := strconv.Atoi(n)
+	return i
+}
+
+func coreAssetEnv(variant where.Variant, assetDir string) string {
+	if variant == where.V2ray {
+		return "V2RAY_LOCATION_ASSET=" + assetDir
+	}
+	return "XRAY_LOCATION_ASSET=" + assetDir
+}
+
 func StartCoreProcess(ctx context.Context) (*os.Process, error) {
 	v2rayBinPath, err := where.GetV2rayBinPath()
 	if err != nil {
 		return nil, err
 	}
 	dir := filepath.Dir(v2rayBinPath)
-	var arguments = []string{
-		v2rayBinPath,
-		"run",
-		"--config=" + asset.GetV2rayConfigPath(),
-	}
-	if confdir := asset.GetV2rayConfigDirPath(); confdir != "" {
-		arguments = append(arguments, "--confdir="+confdir)
-	}
+	variant, ver, _ := where.GetV2rayServiceVersion()
+	arguments := coreCommandArgs(v2rayBinPath, asset.GetV2rayConfigPath(), asset.GetV2rayConfigDirPath(), variant, ver)
 
 	// Get asset directory
 	assetDir := asset.GetV2rayLocationAssetOverride()
 	// The core is told to look in assetDir and nowhere else, so put the dat
 	// files there first when they live in a system directory.
 	asset.EnsureCoreAssets(assetDir)
-	log.Info("Asset directory for %s: %v", "v2raya_core", assetDir)
+	log.Info("Asset directory for %s: %v", variant, assetDir)
 
 	// Prepare environment variables, filtering out duplicates
 	env := make([]string, 0, len(os.Environ())+4)
@@ -274,9 +294,8 @@ func StartCoreProcess(ctx context.Context) (*os.Process, error) {
 		env = append(env, e)
 	}
 
-	// Add asset directory to environment based on core type.
-	// v2raya_core is based on xray-core and uses XRAY_LOCATION_ASSET.
-	env = append(env, "XRAY_LOCATION_ASSET="+assetDir)
+	// v2ray reads V2RAY_LOCATION_ASSET. xray and v2raya_core read XRAY_LOCATION_ASSET.
+	env = append(env, coreAssetEnv(variant, assetDir))
 
 	// Check memory and set geoloader mode
 	memstat, err := mem.VirtualMemory()

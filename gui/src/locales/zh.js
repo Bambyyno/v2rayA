@@ -414,6 +414,8 @@ export default {
   version: {
     v2rayInvalid:
       "检测到 geosite.dat、geoip.dat 文件或 v2raya_core 可能未正确安装，请检查",
+    coreNotFound:
+      "未找到核心。已在这些位置查找 v2ray、xray 和 v2raya_core：{paths}。",
     coreVersionMismatch:
       "核心版本不匹配：v2raya_core 的版本必须与 v2rayA 版本完全一致。{err}",
   },
@@ -718,7 +720,7 @@ export default {
   backend: {
     NO_SERVER_SELECTED: "未选择节点，请先连接一个节点。",
     CORE_START_FAILED: "无法启动 v2raya_core：{detail}",
-    CORE_NOT_FOUND: "未找到 v2raya_core。",
+    CORE_NOT_FOUND: "未找到 v2ray、xray 或 v2raya_core。查找位置：{paths}。",
     CORE_VERSION_MISMATCH:
       "v2raya_core 版本 {core} 与 v2rayA 版本 {app} 不一致。",
     PORT_OCCUPIED: "端口 {port} 已被占用。",
@@ -732,6 +734,10 @@ export default {
     LINK_MALFORMED: "格式错误的 {protocol} 链接：{detail}",
     SUBSCRIPTION_FETCH_FAILED: "无法从 {host} 获取订阅：{detail}",
     SUBSCRIPTION_EMPTY: "订阅中没有节点。",
+    SUBSCRIPTION_PLACEHOLDER:
+      "订阅服务返回了地址为 0.0.0.0 的占位节点，并要求使用 HAPP 或 INCY。其中没有可用服务器。",
+    SUBSCRIPTION_DEVICE_LIMIT:
+      "订阅服务因设备数量已达上限而拒绝了该订阅。没有添加服务器。",
     SUBSCRIPTION_NOT_FOUND: "订阅 #{id} 不存在，请刷新页面。",
     SERVER_NOT_FOUND: "节点 #{id} 不存在（共有 {count} 个节点），请刷新页面。",
     SUBSCRIPTION_SERVER_NOT_FOUND:
