@@ -27,7 +27,7 @@ type Template struct {
 	} `json:"routing"`
 	DNS              *coreObj.DNS              `json:"dns,omitempty"`
 	MultiObservatory *coreObj.MultiObservatory `json:"multiObservatory,omitempty"`
-	Observatory      *coreObj.ObservatoryItem  `json:"observatory,omitempty"`
+	Observatory      *coreObj.Observatory      `json:"observatory,omitempty"`
 	API              *coreObj.APIObject        `json:"api,omitempty"`
 	Stats            *struct{}                 `json:"stats,omitempty"`
 	Policy           *coreObj.Policy           `json:"policy,omitempty"`

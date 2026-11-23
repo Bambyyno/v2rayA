@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -19,7 +20,12 @@ func IsV2rayServiceValid() bool {
 	if !asset.DoesV2rayAssetExist("geoip.dat") || !asset.DoesV2rayAssetExist("geosite.dat") {
 		return false
 	}
-	_, ver, err := where.GetV2rayServiceVersion()
+	variant, ver, err := where.GetV2rayServiceVersion()
+	// xray and v2ray are accepted without a printed version: asking the
+	// binary to print one is the probe that gets killed on a small router.
+	if errors.Is(err, where.ErrProbeKilled) || variant == where.Xray || variant == where.V2ray {
+		return err == nil || errors.Is(err, where.ErrProbeKilled)
+	}
 	return err == nil && ver != ""
 }
 
@@ -44,12 +50,17 @@ func CheckAndProbeTProxy() (err error) {
 
 // CheckCoreVersionMatch checks whether a v2raya_core binary's version matches
 // the v2rayA service version. A v2ray or xray binary is accepted on its own
-// version: those are not built from this tree. Development builds ("debug",
-// "unstable") skip strict matching. In release builds, v2raya_core and the
-// service are built from the same source tree with the same version string.
+// version: those are not built from this tree. The xray package shipped beside
+// this service (xray 25.x next to v2rayA 2.5.x) is that case. Development
+// builds ("debug", "unstable") skip strict matching. In release builds,
+// v2raya_core and the service are built from the same source tree with the
+// same version string. A probe that was killed did not report a version.
 func CheckCoreVersionMatch() error {
 	variant, coreVer, err := where.GetV2rayServiceVersion()
 	if err != nil {
+		if errors.Is(err, where.ErrProbeKilled) {
+			return nil
+		}
 		return err
 	}
 	return acceptCoreVersion(variant, coreVer, conf.Version)

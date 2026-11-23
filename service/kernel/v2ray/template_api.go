@@ -54,9 +54,16 @@ func (t *Template) SetAPI(serverData *ServerData) (port int, err error) {
 				selector = append(selector, GroupWrapper(vi.GetName()))
 			}
 
+			// Until a probe lands, leastping returns an empty tag and the
+			// connection fails. The first member keeps traffic moving.
+			fallback := ""
+			if len(selector) > 0 {
+				fallback = selector[0]
+			}
 			t.Routing.Balancers = append(t.Routing.Balancers, coreObj.Balancer{
-				Tag:      outbound,
-				Selector: selector,
+				Tag:         outbound,
+				Selector:    selector,
+				FallbackTag: fallback,
 				Strategy: coreObj.BalancerStrategy{
 					Type: strategy.String(),
 					Settings: &coreObj.StrategySettings{
@@ -72,23 +79,37 @@ func (t *Template) SetAPI(serverData *ServerData) (port int, err error) {
 					probeUrl = "https://gstatic.com/generate_204"
 				}
 
-				// v2raya_core always uses MultiObservatory: one observer per balancer group.
-				if t.MultiObservatory == nil {
-					t.MultiObservatory = &coreObj.MultiObservatory{}
-				}
-				t.MultiObservatory.Observers = append(t.MultiObservatory.Observers, coreObj.ObservatoryItem{
-					Tag: outbound,
-					Settings: coreObj.Observatory{
-						SubjectSelector: selector,
-						PingConfig: &coreObj.PingConfig{
-							Destination: probeUrl,
-							Interval:    interval.String(),
+				if t.Variant == where.V2rayaCore {
+					// v2raya_core always uses MultiObservatory: one observer per balancer group.
+					if t.MultiObservatory == nil {
+						t.MultiObservatory = &coreObj.MultiObservatory{}
+					}
+					t.MultiObservatory.Observers = append(t.MultiObservatory.Observers, coreObj.ObservatoryItem{
+						Tag: outbound,
+						Settings: coreObj.Observatory{
+							SubjectSelector: selector,
+							PingConfig: &coreObj.PingConfig{
+								Destination: probeUrl,
+								Interval:    interval.String(),
+							},
+							// the core's loader reads these flat fields too (core/hint/conf/loader.go)
+							ProbeURL:      probeUrl,
+							ProbeInterval: interval.String(),
 						},
-						// the core's loader reads these flat fields too (core/hint/conf/loader.go)
-						ProbeURL:      probeUrl,
-						ProbeInterval: interval.String(),
-					},
-				})
+					})
+				} else {
+					// Stock xray (the core this package runs) loads one
+					// observatory. leastping requires that feature while the
+					// router is starting; without it the process panics and
+					// exits. multiObservatory is not a field xray loads.
+					if t.Observatory == nil {
+						t.Observatory = &coreObj.Observatory{
+							ProbeURL:      probeUrl,
+							ProbeInterval: interval.String(),
+						}
+					}
+					t.Observatory.SubjectSelector = append(t.Observatory.SubjectSelector, selector...)
+				}
 			}
 		}
 		if t.MultiObservatory != nil || t.Observatory != nil {
