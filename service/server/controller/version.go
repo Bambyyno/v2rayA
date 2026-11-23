@@ -34,6 +34,9 @@ func GetVersion(ctx *gin.Context) {
 	}
 
 	versionErr := service.CheckCoreVersionMatch()
+	// Only a compared pair of version strings is a mismatch. A killed probe
+	// and a missing binary are not.
+	versionMismatch := errors.Is(versionErr, service.CoreVersionMismatchError)
 	// the core's own version, for the dashboard; empty when the binary cannot be asked
 	coreVersion := ""
 	variant := where.Variant("")
@@ -67,9 +70,9 @@ func GetVersion(ctx *gin.Context) {
 		"os":               runtime.GOOS,
 		"isRoot":           isRoot,
 		"tunSupported":     v2ray.TunSupported(),
-		"coreVersionValid": versionErr == nil,
+		"coreVersionValid": !versionMismatch,
 		"coreVersionErr": func() string {
-			if versionErr != nil {
+			if versionMismatch {
 				return versionErr.Error()
 			}
 			return ""

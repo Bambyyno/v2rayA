@@ -38,6 +38,8 @@ func resetVersionCache(t *testing.T) {
 	v2rayVersion.mu.Lock()
 	v2rayVersion.version = ""
 	v2rayVersion.variant = ""
+	v2rayVersion.binPath = ""
+	v2rayVersion.err = nil
 	v2rayVersion.lastUpdate = time.Time{}
 	v2rayVersion.mu.Unlock()
 }
@@ -45,7 +47,10 @@ func resetVersionCache(t *testing.T) {
 func TestServiceVersionFromBinary(t *testing.T) {
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "xray")
-	script := "#!/bin/sh\necho 'Xray 1.8.24 (Xray, Penetrates Everything.)'\n"
+	marker := filepath.Join(dir, "ran")
+	// The script would claim to be v2raya_core. The file name is enough:
+	// this package's xray is not run just to print a version.
+	script := "#!/bin/sh\necho ran > '" + marker + "'\necho 'V2RAYA_CORE 9.9.9'\n"
 	if err := os.WriteFile(bin, []byte(script), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +61,48 @@ func TestServiceVersionFromBinary(t *testing.T) {
 	resetVersionCache(t)
 
 	variant, ver, err := GetV2rayServiceVersion()
-	if err != nil || variant != Xray || ver != "1.8.24" {
+	if err != nil || variant != Xray || ver != "" {
+		t.Fatalf("got %s %s %v", variant, ver, err)
+	}
+	if _, statErr := os.Stat(marker); !os.IsNotExist(statErr) {
+		t.Fatal("xray was executed to read its version")
+	}
+}
+
+func TestV2rayaCoreVersionStillComesFromTheBinary(t *testing.T) {
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "v2raya_core")
+	script := "#!/bin/sh\necho 'V2RAYA_CORE 2.5.10 (based on xray-core 25.10.15)'\n"
+	if err := os.WriteFile(bin, []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	env := conf.GetEnvironmentConfig()
+	prev := env.V2rayBin
+	env.V2rayBin = bin
+	t.Cleanup(func() { env.V2rayBin = prev })
+	resetVersionCache(t)
+
+	variant, ver, err := GetV2rayServiceVersion()
+	if err != nil || variant != V2rayaCore || ver != "2.5.10" {
+		t.Fatalf("got %s %s %v", variant, ver, err)
+	}
+}
+
+func TestKilledVersionProbeIsNotAVersion(t *testing.T) {
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "v2raya_core")
+	script := "#!/bin/sh\nkill -9 $$\n"
+	if err := os.WriteFile(bin, []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	env := conf.GetEnvironmentConfig()
+	prev := env.V2rayBin
+	env.V2rayBin = bin
+	t.Cleanup(func() { env.V2rayBin = prev })
+	resetVersionCache(t)
+
+	variant, ver, err := GetV2rayServiceVersion()
+	if !errors.Is(err, ErrProbeKilled) || variant != V2rayaCore || ver != "" {
 		t.Fatalf("got %s %s %v", variant, ver, err)
 	}
 }
